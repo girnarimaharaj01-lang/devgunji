@@ -1,16 +1,28 @@
+
+
 FROM python:3.11-slim-bookworm
-RUN apt update && apt upgrade -y
-RUN apt-get install git curl python3-pip ffmpeg -y
-RUN apt-get -y install git
-RUN apt-get install -y wget python3-pip curl bash neofetch ffmpeg software-properties-common
-COPY requirements.txt .
+# Update the package lists and upgrade the existing packages
 
-RUN pip3 install wheel
-RUN pip3 install --no-cache-dir -U -r requirements.txt
+ENV TZ=Asia/Dhaka
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git build-essential tzdata ffmpeg libssl-dev libffi-dev && \
+    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone && \
+    rm -rf /var/lib/apt/lists/*
+    
+RUN pip install --no-cache-dir -U pip wheel==0.45.1
+
 WORKDIR /app
+COPY requirements.txt /app
+RUN pip install -U -r requirements.txt
+# Set the working directory inside the container
+
 COPY . .
-EXPOSE 5000
-
-
+# change port -p to 10000 if not works
+# A dummy command to keep the container running
+# Start application
+# Set the command to run the application
 CMD ["sh", "-c", "gunicorn app:app & python3 -m devgagan"]
 CMD flask run -h 0.0.0.0 -p 5000 & python3 -m devgagan
